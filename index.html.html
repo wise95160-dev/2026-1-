@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>과학 개념 학습지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    /* 스크롤바 숨기기 옵션 (선택사항) */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="flex h-screen bg-slate-50 overflow-hidden font-sans text-slate-800">
+
+  <div class="w-24 bg-white border-r border-slate-200 p-2 md:p-3 flex flex-col shadow-sm z-10 shrink-0">
+    <div class="flex flex-col items-center justify-center gap-1 font-bold text-slate-800 mb-4 pt-2">
+      <i data-lucide="list-checks" class="text-blue-600 w-6 h-6"></i>
+      <span class="text-[10px] md:text-xs">문제 목록</span>
+    </div>
+    <div id="sidebar-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+      </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-container">
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-md border border-slate-200">
+      
+      <h1 id="q-title" class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-5 leading-tight"></h1>
+      <div id="q-desc" class="text-lg mb-8 leading-relaxed bg-slate-100 p-5 md:p-6 rounded-2xl text-slate-700 font-medium whitespace-pre-wrap"></div>
+      
+      <div id="image-container" class="mb-8 w-full bg-slate-50 border-2 rounded-3xl min-h-[180px] flex flex-col items-center justify-center relative overflow-hidden hidden">
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 p-6 text-center z-0">
+          <i data-lucide="image" class="w-10 h-10 text-slate-400 opacity-60 mb-2"></i>
+          <p id="image-error-text" class="font-bold text-lg text-slate-700"></p>
+          <p class="text-xs mt-2 max-w-md break-keep text-slate-400">
+            ※ 그림 파일이 같은 폴더에 없거나 로드할 수 없습니다.
+          </p>
+        </div>
+        <img id="q-image" src="" alt="문제 그림" class="max-h-72 object-contain mix-blend-multiply z-10 relative" onerror="this.style.display='none'">
+      </div>
+
+      <div id="placeholder-container" class="mb-8 w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl h-40 flex flex-col items-center justify-center text-slate-500 italic p-6 text-center space-y-3 hidden">
+        <i data-lucide="image" class="w-8 h-8 text-slate-400 opacity-50"></i>
+        <p id="q-placeholder" class="max-w-md break-keep leading-snug"></p>
+      </div>
+
+      <div class="space-y-3 mb-10">
+        <h3 class="text-xl font-bold border-b-2 border-slate-100 pb-2 mb-4 flex items-center gap-2">
+          <i data-lucide="book-open" class="text-blue-500 w-6 h-6"></i> 소문항 풀이
+        </h3>
+        <div id="subquestions-container" class="space-y-3">
+          </div>
+      </div>
+
+      <div class="border-t-2 border-slate-100 pt-6 mt-2">
+        <div id="action-buttons" class="flex flex-col md:flex-row gap-4 mb-8">
+          </div>
+
+        <div class="flex gap-3 justify-center">
+          <button id="btn-study" class="flex-1 flex justify-center items-center gap-2 px-4 py-3.5 rounded-2xl shadow-sm border-2 font-bold bg-white border-slate-200 hover:bg-slate-50 transition-colors">
+            <i data-lucide="book-open" class="w-5 h-5 text-indigo-500"></i> 추가 공부하기
+          </button>
+          <button id="btn-chat" class="flex-1 flex justify-center items-center gap-2 px-4 py-3.5 rounded-2xl shadow-sm border-2 font-bold bg-white border-slate-200 hover:bg-slate-50 transition-colors">
+            <i data-lucide="help-circle" class="w-5 h-5 text-rose-500"></i> 질문하기
+          </button>
+          <button onclick="alert('유사 유형 검색은 확장 기능입니다.')" class="flex-1 flex justify-center items-center gap-2 px-4 py-3.5 rounded-2xl shadow-sm border-2 border-slate-200 bg-white hover:bg-slate-50 font-bold transition-colors">
+            <i data-lucide="file-text" class="w-5 h-5 text-emerald-500"></i> 유사 유형 풀기
+          </button>
+        </div>
+
+        <div id="panel-study" class="mt-6 bg-indigo-50 border-l-8 border-indigo-500 p-8 rounded-2xl shadow-lg hidden">
+          <h3 class="font-extrabold text-indigo-900 text-xl mb-4 flex items-center gap-2"><i data-lucide="book-open"></i> 핵심 개념노트</h3>
+          <p id="study-material" class="text-indigo-900 text-lg leading-relaxed font-medium"></p>
+        </div>
+
+        <div id="panel-chat" class="mt-6 bg-white rounded-2xl shadow-2xl border border-slate-200 h-96 flex-col hidden">
+          <div class="bg-slate-800 text-white p-4 font-bold flex items-center gap-2 text-lg rounded-t-2xl"><i data-lucide="sparkles" class="text-yellow-300"></i> AI 튜터</div>
+          <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50"></div>
+          <form id="chat-form" class="p-4 bg-white border-t flex gap-2 rounded-b-2xl">
+            <input type="text" id="chat-input" placeholder="질문을 입력하세요." class="flex-1 bg-slate-100 rounded-full px-5 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-colors"><i data-lucide="send"></i></button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- 실제 시험지 전체 문항 데이터 (React 코드와 동일) ---
+    const QUESTIONS = [
+      {
+        id: 'q1', title: '1. 고체 (가), (나)의 가열 곡선',
+        description: '그림은 고체 (가), (나)의 양을 다르게 하여 가열하면서 시간에 따른 온도변화를 나타낸 그래프이다.',
+        imageUrl: '1.png',
+        subQuestions: [
+          { id: 'q1-1', type: 'text', prefix: '(1) (가)의 녹는점은', suffix: '℃ 이다.', correct: '53' },
+          { id: 'q1-2', type: 'select', prefix: '(2) (가)의 양은 (나)보다', options: ['선택', '많다', '적다'], suffix: '.', correct: '적다' },
+          { id: 'q1-3', type: 'select', prefix: '(3) (가)와 (나)는 서로', options: ['선택', '같은', '다른'], suffix: '물질이다.', correct: '같은' },
+          { id: 'q1-4', type: 'keyword', prefix: '(4) 순물질의 녹는점 그래프에 대해 설명하시오.', suffix: '', answerKeywords: ['일정', '온도', '상태'], minKeywords: 2, placeholder: '순물질이 상태 변화를 할 때 온도 특징을 서술하세요.' }
+        ],
+        studyMaterial: '순물질은 가열할 때 상태 변화(고체→액체)가 일어나는 동안 가해준 열에너지가 모두 상태 변화에 사용되므로 온도가 일정하게 유지됩니다.'
+      },
+      {
+        id: 'q2', title: '2. 질소와 텅스텐의 녹는점과 끓는점',
+        description: '표는 질소와 텅스텐의 녹는점과 끓는점을 순서 없이 나타낸 것이다.',
+        imageUrl: '2.jpg',
+        subQuestions: [
+          { id: 'q2-1', type: 'select', prefix: '(1) (가)는 녹는점이 높아 필라멘트로 사용할 수 있다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q2-2', type: 'select', prefix: '(2) (나)는 200℃에서', options: ['선택', '고체', '액체', '기체'], suffix: '로 존재한다.', correct: '기체' },
+          { id: 'q2-3', type: 'select', prefix: '(3) (나)는 혈액 등을 냉동해 보관할 때 사용할 수 있다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q2-4', type: 'text', prefix: '(4) ① 녹는점 이하의 온도에서는', suffix: '상태이다.', correct: '고체' },
+          { id: 'q2-5', type: 'text', prefix: '② 녹는점과 끓는점 사이에서는', suffix: '상태이다.', correct: '액체' },
+          { id: 'q2-6', type: 'text', prefix: '③ 끓는점 이상의 온도에서는', suffix: '상태이다.', correct: '기체' }
+        ],
+        studyMaterial: '텅스텐은 녹는점이 매우 높아 필라멘트로 쓰이고, 질소는 끓는점이 매우 낮아 냉동 보관용 냉매로 쓰입니다.'
+      },
+      {
+        id: 'q3', title: '3. 고체 물질의 용해도 곡선',
+        description: '그림은 몇 가지 고체 물질의 용해도 곡선을 나타낸 것이다.',
+        imageUrl: '3.jpg',
+        subQuestions: [
+          { id: 'q3-1', type: 'select', prefix: '(1) 온도가 높을수록 용해도는', options: ['선택', '증가', '감소'], suffix: '한다.', correct: '증가' },
+          { id: 'q3-2', type: 'text', prefix: '(2) 40℃에서 용해도가 가장 큰 물질은', suffix: '이다.', correct: '질산나트륨' },
+          { id: 'q3-3', type: 'select', prefix: '(3) 80℃에서 20℃로 냉각 시 질산 나트륨이 더 많이 석출된다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q3-4', type: 'keyword', prefix: '(4) 고체 물질의 용해도와 온도에 대해 설명하시오.', suffix: '', answerKeywords: ['온도', '높을수록', '증가'], minKeywords: 2 }
+        ],
+        studyMaterial: '대부분 고체의 용해도는 온도가 높아질수록 증가합니다. 용해도 곡선의 기울기가 클수록 냉각 시 석출량이 많습니다.'
+      },
+      {
+        id: 'q4', title: '4. 기체의 용해도',
+        description: '같은 양의 탄산수가 들어 있는 시험관 2개를 각각 (가) 얼음물과 (나) 50℃ 물이 담긴 비커에 넣고 기포 발생 정도를 관찰했다.',
+        imageUrl: '4.jpg',
+        subQuestions: [
+          { id: 'q4-1', type: 'select', prefix: '(1) 기포는 (가)보다 (나)에서 더', options: ['선택', '많이', '적게'], suffix: '발생한다.', correct: '많이' },
+          { id: 'q4-2', type: 'select', prefix: '(2) 탄산수 온도가 높아지면 기체의 용해도는', options: ['선택', '증가', '감소'], suffix: '한다.', correct: '감소' },
+          { id: 'q4-3', type: 'text', prefix: '(3) 위 실험으로 기체의 용해도와', suffix: '의 관계를 알 수 있다.', correct: '온도' },
+          { id: 'q4-4', type: 'keyword', prefix: '(4) 기체의 용해도와 온도의 관계를 분자 운동과 관련지어 설명하시오.', suffix: '', answerKeywords: ['온도', '분자', '활발', '빠져'], minKeywords: 2 }
+        ],
+        studyMaterial: '온도가 높아지면 기체 분자의 운동이 활발해져 액체 밖으로 쉽게 빠져나가므로 기체의 용해도가 감소합니다.'
+      },
+      {
+        id: 'q5', title: '5. 순물질과 혼합물의 끓는점 곡선',
+        description: '그래프는 순물질과 혼합물의 가열 곡선을 순서 없이 나타낸 것이다.',
+        imageUrl: '5.jpg',
+        subQuestions: [
+          { id: 'q5-1', type: 'select', prefix: '(1) A는 혼합물이다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q5-2', type: 'select', prefix: '(2) A는 끓는점이 일정하지 않다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q5-3', type: 'select', prefix: '(3) A는 B보다 더 높은 온도에서 끓기 시작한다.', options: ['선택', 'O', 'X'], suffix: '', correct: 'O' },
+          { id: 'q5-4', type: 'keyword', prefix: '(4) 혼합물(A)의 끓는점 그래프 특징을 설명하시오.', suffix: '', answerKeywords: ['계속', '높아', '농도'], minKeywords: 2 }
+        ],
+        studyMaterial: '순물질(B)은 끓는 동안 온도가 일정하지만, 혼합물(A)은 물이 기화하며 남은 용액의 농도가 진해져 온도가 계속 높아집니다.'
+      },
+      {
+        id: 'q6', title: '6. 끓는점 차이를 이용한 분리',
+        description: '그래프는 끓는점이 다른 두 액체 혼합물을 분리하기 위해 가열했을 때 시간에 따른 온도 변화를 나타낸 것이다.',
+        imageUrl: '6.jpg',
+        subQuestions: [
+          { id: 'q6-1', type: 'select', prefix: '(1) (가)에서 끓는점이', options: ['선택', '높은', '낮은'], suffix:
